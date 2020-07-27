@@ -1,0 +1,9 @@
+[submodule "BiomeUtils"]
+	path = BiomeUtils
+	url = https://github.com/KaptainWutax/BiomeUtils
+[submodule "SeedUtils"]
+	path = SeedUtils
+	url = https://github.com/KaptainWutax/SeedUtils
+[submodule "FeatureUtils"]
+	path = FeatureUtils
+	url = https://github.com/KaptainWutax/FeatureUtils
