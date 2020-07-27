@@ -11,12 +11,12 @@ import kaptainwutax.seedutils.util.math.Mth;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
-
-import kaptainwutax.featureutils.structure.generator.StrongholdGenerator;
 
 public class SeedFinder2 {
 
@@ -26,7 +26,14 @@ public class SeedFinder2 {
 	public static final DesertPyramid DESERT_PYRAMID = new DesertPyramid(MCVersion.v1_16);
 	
 	public static void main(String[] args) {
-		
+		try {
+			BufferedReader objReader = new BufferedReader(new FileReader("D:\\Projects\\test3\\input.txt"));
+			BufferedWriter objWriter = new BufferedWriter(new FileWriter("D:\\Projects\\test3\\output.txt"));
+			applyFilter(objReader, objWriter);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	// big thanks to KaptainWutax for providing the following code
@@ -36,7 +43,7 @@ public class SeedFinder2 {
 
 		Set<CPos> hutRegions = new HashSet<>();
 
-		for(CPos ringStart: StrongholdGenerator.getAllStarts(0, StrongholdGen.DEFAULT_CONFIG)) {
+		for(CPos ringStart: StrongholdGen.getAllStarts(0, StrongholdGen.DEFAULT_CONFIG)) {
 			for(int xo = 0; xo < 53; xo++) {
 				for(int zo = 0; zo < 53; zo++) {
 					hutRegions.add(toRegion(ringStart.getX() - 26 + xo, ringStart.getZ() - 26 + zo, SWAMP_HUT));
@@ -72,6 +79,17 @@ public class SeedFinder2 {
 		RegionStructure.Data<?> data = structure.at(chunkX, chunkZ);
 		return new CPos(data.regionX, data.regionZ);
 	}
+	
+	// for now assumes that the AFK spot will be in the center
+	private static CPos getAfkSpot(CPos... positions) {
+		int afkPosX = 0, afkPosZ = 0;
+		for(int i = 1; i < positions.length; i++) {
+			CPos position = positions[i];
+			afkPosX += position.getX();
+			afkPosZ += position.getZ();
+		}
+		return new CPos(afkPosX / (positions.length-1), afkPosZ / (positions.length-1));
+	}
 
 	public static void filterQuads(BufferedReader reader, BufferedWriter writer) throws IOException {
 		ChunkRand rand = new ChunkRand();
@@ -96,6 +114,7 @@ public class SeedFinder2 {
 				if(!SWAMP_HUT.canSpawn(hut3.getX(), hut3.getZ(), source))continue;
 
 				CPos[] firstStarts = STRONGHOLD.getStarts(source, 3, rand);
+				
 				int id = testMonument(source, firstStarts[1], firstStarts[2], rand);
 				if(id < 1)continue;
 				if(!testTemple(source, id == 1 ? firstStarts[2] : firstStarts[1], rand))continue;
@@ -103,6 +122,8 @@ public class SeedFinder2 {
 			}
 		}
 	}
+	
+	
 
 	private static boolean testTemple(OverworldBiomeSource source, CPos start, ChunkRand rand) {
 		CPos region = toRegion(start.getX(), start.getZ(), DESERT_PYRAMID);
@@ -117,7 +138,12 @@ public class SeedFinder2 {
 		if(testDouble(source, region.getX(), region.getZ(), MONUMENT, rand))return 2;
 		return 0;
 	}
-
+	
+	
+	// finds double structures that are at least in 26 chunks range to each other
+	// an afk spot can only be made if the structures are contained within a 128 block
+	// radius sphere. 26 chunks is 416 blocks diameter
+	// thats a little too much
 	public static boolean testDouble(OverworldBiomeSource source, int regionX, int regionZ, RegionStructure<?, ?> structure, ChunkRand rand) {
 		CPos monument00 = structure.getInRegion(source.getWorldSeed(), regionX, regionZ, rand);
 		if(!structure.canSpawn(monument00.getX(), monument00.getZ(), source))return false;
@@ -140,4 +166,89 @@ public class SeedFinder2 {
 
 		return false;
 	}
+	
+	// But I dont want to touch any of the original code so Im going to copy the code above and copy the pattern from above
+	// and adjust it to our needs.
+	
+	public static void applyFilter(BufferedReader reader, BufferedWriter writer) throws IOException {
+		ChunkRand rand = new ChunkRand();
+
+		while(reader.ready()) {
+			String[] line = reader.readLine().split(Pattern.quote(" "));
+			long structureSeed = Long.parseLong(line[0]);
+			int regionX = Integer.parseInt(line[1]);
+			int regionZ = Integer.parseInt(line[2]);
+
+			CPos hut = SWAMP_HUT.getInRegion(structureSeed, regionX, regionZ, rand);
+			CPos hut1 = SWAMP_HUT.getInRegion(structureSeed, regionX - 1, regionZ - 1, rand);
+			CPos hut2 = SWAMP_HUT.getInRegion(structureSeed, regionX - 1, regionZ, rand);
+			CPos hut3 = SWAMP_HUT.getInRegion(structureSeed, regionX, regionZ - 1, rand);
+			CPos hutAfk = getAfkSpot(hut, hut1, hut2, hut3);
+			
+
+			for(long upperBits = 0; upperBits < 1L << 16; upperBits++) {
+				long worldSeed = (upperBits << 48) | structureSeed;
+				OverworldBiomeSource source = new OverworldBiomeSource(MCVersion.v1_16, worldSeed);
+				if(!SWAMP_HUT.canSpawn(hut.getX(), hut.getZ(), source))continue;
+				if(!SWAMP_HUT.canSpawn(hut1.getX(), hut1.getZ(), source))continue;
+				if(!SWAMP_HUT.canSpawn(hut2.getX(), hut2.getZ(), source))continue;
+				if(!SWAMP_HUT.canSpawn(hut3.getX(), hut3.getZ(), source))continue;
+
+				CPos[] firstStarts = STRONGHOLD.getStarts(source, 3, rand);
+				if(hutAfk.distanceTo(firstStarts[0], DistanceMetric.CHEBYSHEV) > 15)continue;
+				if(!testDoublePyramid(source, firstStarts[1], rand)
+						&& !testDoublePyramid(source, firstStarts[2], rand))continue;
+				System.out.println(worldSeed + " with structure seed " + structureSeed);
+			}
+		}
+	}
+	
+	public static boolean testDoublePyramid(OverworldBiomeSource source, CPos strongholdPos, ChunkRand rand) {
+		CPos region = toRegion(strongholdPos.getX(), strongholdPos.getZ(), DESERT_PYRAMID);
+		int regionX = region.getX(), regionZ = region.getZ();
+		
+		CPos pyramid00 = DESERT_PYRAMID.getInRegion(source.getWorldSeed(), regionX, regionZ, rand);
+		if(pyramid00.distanceTo(strongholdPos, DistanceMetric.CHEBYSHEV) > 23) return false;
+		if(!DESERT_PYRAMID.canSpawn(pyramid00.getX(), pyramid00.getZ(), source))return false;
+
+		CPos newPyramid = DESERT_PYRAMID.getInRegion(source.getWorldSeed(), regionX + 1, regionZ, rand);
+		if(pyramid00.distanceTo(newPyramid, DistanceMetric.EUCLIDEAN_SQ) <= 249
+				&& getAfkSpot(pyramid00, newPyramid).distanceTo(strongholdPos, DistanceMetric.CHEBYSHEV) <= 15
+				&& DESERT_PYRAMID.canSpawn(newPyramid.getX(), newPyramid.getZ(), source))return true;
+
+		newPyramid = DESERT_PYRAMID.getInRegion(source.getWorldSeed(), regionX, regionZ + 1, rand);
+		if(pyramid00.distanceTo(newPyramid, DistanceMetric.EUCLIDEAN_SQ) <= 249
+				&& getAfkSpot(pyramid00, newPyramid).distanceTo(strongholdPos, DistanceMetric.CHEBYSHEV) <= 15
+				&& DESERT_PYRAMID.canSpawn(newPyramid.getX(), newPyramid.getZ(), source))return true;
+
+		newPyramid = DESERT_PYRAMID.getInRegion(source.getWorldSeed(), regionX - 1, regionZ, rand);
+		if(pyramid00.distanceTo(newPyramid, DistanceMetric.EUCLIDEAN_SQ) <= 249
+				&& getAfkSpot(pyramid00, newPyramid).distanceTo(strongholdPos, DistanceMetric.CHEBYSHEV) <= 15
+				&& DESERT_PYRAMID.canSpawn(newPyramid.getX(), newPyramid.getZ(), source))return true;
+
+		newPyramid = DESERT_PYRAMID.getInRegion(source.getWorldSeed(), regionX, regionZ - 1, rand);
+		if(pyramid00.distanceTo(newPyramid, DistanceMetric.EUCLIDEAN_SQ) <= 249
+				&& getAfkSpot(pyramid00, newPyramid).distanceTo(strongholdPos, DistanceMetric.CHEBYSHEV) <= 15
+				&& DESERT_PYRAMID.canSpawn(newPyramid.getX(), newPyramid.getZ(), source))return true;
+		newPyramid = DESERT_PYRAMID.getInRegion(source.getWorldSeed(), regionX + 1, regionZ + 1, rand);
+		if(pyramid00.distanceTo(newPyramid, DistanceMetric.EUCLIDEAN_SQ) <= 249
+				&& getAfkSpot(pyramid00, newPyramid).distanceTo(strongholdPos, DistanceMetric.CHEBYSHEV) <= 15
+				&& DESERT_PYRAMID.canSpawn(newPyramid.getX(), newPyramid.getZ(), source))return true;
+
+		newPyramid = DESERT_PYRAMID.getInRegion(source.getWorldSeed(), regionX + 1, regionZ - 1, rand);
+		if(pyramid00.distanceTo(newPyramid, DistanceMetric.EUCLIDEAN_SQ) <= 249
+				&& getAfkSpot(pyramid00, newPyramid).distanceTo(strongholdPos, DistanceMetric.CHEBYSHEV) <= 15
+				&& DESERT_PYRAMID.canSpawn(newPyramid.getX(), newPyramid.getZ(), source))return true;
+		newPyramid = DESERT_PYRAMID.getInRegion(source.getWorldSeed(), regionX - 1, regionZ + 1, rand);
+		if(pyramid00.distanceTo(newPyramid, DistanceMetric.EUCLIDEAN_SQ) <= 249
+				&& getAfkSpot(pyramid00, newPyramid).distanceTo(strongholdPos, DistanceMetric.CHEBYSHEV) <= 15
+				&& DESERT_PYRAMID.canSpawn(newPyramid.getX(), newPyramid.getZ(), source))return true;
+
+		newPyramid = DESERT_PYRAMID.getInRegion(source.getWorldSeed(), regionX - 1, regionZ - 1, rand);
+		if(pyramid00.distanceTo(newPyramid, DistanceMetric.EUCLIDEAN_SQ) <= 249
+				&& getAfkSpot(pyramid00, newPyramid).distanceTo(strongholdPos, DistanceMetric.CHEBYSHEV) <= 15
+				&& DESERT_PYRAMID.canSpawn(newPyramid.getX(), newPyramid.getZ(), source))return true;
+		return false;
+	}
+	
 }
