@@ -1,13 +1,13 @@
 package ch.endte.seedfinder;
 
 
-import main.java.kaptainwutax.biomeutils.source.OverworldBiomeSource;
-import main.java.kaptainwutax.featureutils.structure.*;
-import main.java.kaptainwutax.seedutils.mc.ChunkRand;
-import main.java.kaptainwutax.seedutils.mc.MCVersion;
-import main.java.kaptainwutax.seedutils.mc.pos.CPos;
-import main.java.kaptainwutax.seedutils.util.math.DistanceMetric;
-import main.java.kaptainwutax.seedutils.util.math.Mth;
+import kaptainwutax.biomeutils.source.OverworldBiomeSource;
+import kaptainwutax.featureutils.structure.*;
+import kaptainwutax.seedutils.mc.ChunkRand;
+import kaptainwutax.seedutils.mc.MCVersion;
+import kaptainwutax.seedutils.mc.pos.CPos;
+import kaptainwutax.seedutils.util.math.DistanceMetric;
+import kaptainwutax.seedutils.util.math.Mth;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
