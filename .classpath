@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="BiomeUtils/src"/>
-	<classpathentry kind="src" path="FeatureUtils/src"/>
-	<classpathentry kind="src" path="SeedUtils/src"/>
+	<classpathentry excluding="test/java/" kind="src" path="BiomeUtils/src"/>
+	<classpathentry excluding="test/java/" kind="src" path="FeatureUtils/src"/>
+	<classpathentry excluding="test/java/" kind="src" path="SeedUtils/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
