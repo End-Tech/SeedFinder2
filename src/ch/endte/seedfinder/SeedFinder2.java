@@ -1,38 +1,26 @@
 package ch.endte.seedfinder;
 
-
-
-
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class SeedFinder2 {
-	public static final int THREAD_COUNT = 23;
+	public static final int THREAD_COUNT = 2;
+	public static final ArrayList<Thread> thread = new ArrayList<Thread>();
 	
-	public static void main(String[] args) {
-		DirectTokenCommunication[] taskComm = DirectTokenCommunication.createCommunicationLine();
-		TaskWorkerThread t = new TaskWorkerThread(taskComm[1]);
-		Thread th = new Thread(t);
-		th.start();
-		boolean receivedRequest = false;
-		while (!receivedRequest) {
-			for (Message m:taskComm[0].receive()) {
-				if (m.command == Token.REQUEST_TASK) {
-					receivedRequest = true;
-					break;
-				}
-			}
+	public static void main(String[] args) throws IOException {
+		DirectTokenCommunication[] ds = DirectTokenCommunication.createCommunicationLine();
+		TaskDistributor tb = new TaskDistributor(ds[0]);
+		SeedFindingManager sfm = new SeedFindingManager(ds[1],"./data.log");
+		for (int i=0; i<THREAD_COUNT; i++) {
+			ds = DirectTokenCommunication.createCommunicationLine();
+			Thread t = new Thread(new TaskWorkerThread(ds[0]));
+			thread.add(t);
+			tb.addConnection(ds[1]);
+			t.start();
 		}
-		taskComm[0].send(new Message(Token.ADD_TASK, "DBT Hello World!"));
-		boolean receivedResponse = false;
-		while (!receivedResponse) {
-			for (Message m:taskComm[0].receive()) {
-				if (m.command == Token.FINISH_TASK) {
-					receivedResponse = true;
-					break;
-				}
-			}
+		while (true) {
+			tb.tick();
+			sfm.tick();
 		}
-		taskComm[0].send(new Message(Token.SHUTDOWN));
 	}
-
-	
 }

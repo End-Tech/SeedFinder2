@@ -16,7 +16,7 @@ import kaptainwutax.seedutils.util.math.DistanceMetric;
 
 public class Filter1Task extends Task {
 	
-	protected static final String id = "FT1";
+	public static final String id = "FILTER1";
 	
 	public static final SwampHut SWAMP_HUT = new SwampHut(MCVersion.v1_16);
 	public static final Stronghold STRONGHOLD = new Stronghold(MCVersion.v1_7);

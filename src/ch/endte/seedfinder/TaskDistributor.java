@@ -49,6 +49,7 @@ public class TaskDistributor {
 		for(Connection c: clients) {
 			if (c.com.isClosed()) continue;
 			for (Message m: c.com.receive()) {
+				System.out.println(m.command.id + " " + m.parameters);
 				switch (m.command) {
 				case REQUEST_TASK:
 					c.requestCount = Integer.parseInt(m.parameters);
