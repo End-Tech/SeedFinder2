@@ -38,7 +38,6 @@ public class TaskWorkerThread implements Runnable {
 		for(Message m: messages) {
 			switch (m.command) {
 			case ADD_TASK:
-				
 				String[] parameters  = m.parameters.split(" ", 2);
 				Task t = Task.getTask(parameters[0]);
 				if (t == null) {

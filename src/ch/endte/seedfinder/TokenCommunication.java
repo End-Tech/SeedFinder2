@@ -11,4 +11,6 @@ public interface TokenCommunication {
 	public void flush();
 	// assuming that a communication has to end at some point
 	public void close();
+	// assuming there is some way to identify this:
+	public boolean isClosed();
 }

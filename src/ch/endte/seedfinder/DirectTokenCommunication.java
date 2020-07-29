@@ -33,20 +33,20 @@ public class DirectTokenCommunication implements TokenCommunication {
 
 	@Override
 	public synchronized void send(List<Message> m) {
-		target.addMessage(m);
+		if (this.target != null)target.addMessageFrom(m, this);
 	}
 
 	@Override
 	public synchronized void send(Message m) {
-		target.addMessage(m);
+		if (this.target != null)target.addMessageFrom(m, this);
 	}
 	
-	private synchronized void addMessage(List<Message> m) {
-		messageQueue.addAll(m);
+	private synchronized void addMessageFrom(List<Message> m, DirectTokenCommunication c) {
+		if (!isClosedFrom(c))messageQueue.addAll(m);
 	}
 	
-	private synchronized void addMessage(Message m) {
-		messageQueue.add(m);
+	private synchronized void addMessageFrom(Message m, DirectTokenCommunication c) {
+		if (!isClosedFrom(c))messageQueue.add(m);
 	}
 
 	// irrelevant for this specific implementation since unbuffered
@@ -55,12 +55,17 @@ public class DirectTokenCommunication implements TokenCommunication {
 
 	// remove circular reference
 	@Override
-	public void close() {
+	public synchronized void close() {
 		if (target != null) {
-			if (target.target == this) {
-				target.target = null;
-			}
+			target.closeFrom(this);
 			target = null;
 		}
 	}
+	
+	private synchronized void closeFrom(DirectTokenCommunication t) {if (target == t) {target = null;}}
+
+	@Override
+	public synchronized boolean isClosed() {return target == null || target.isClosedFrom(this);}
+	public synchronized boolean isClosedFrom(DirectTokenCommunication t) {return target != t;}
+	
 }
