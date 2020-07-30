@@ -30,8 +30,8 @@ public class TaskWorkerThread implements Runnable {
 		if (queue.size() == 0)return;
 		SpecificTask ts = queue.remove(0);
 		ts.task.run(ts.taskParameter, comms);
-		System.out.println("Finished the fucking garbage task");
-		comms.send(new Message(Token.FINISH_TASK, ts.task.getId() + " " + ts.taskParameter));
+		Message m = new Message(Token.FINISH_TASK, ts.task.getId() + " " + ts.taskParameter);
+		comms.send(m);
 	}
 
 	public void receiveMessages() {

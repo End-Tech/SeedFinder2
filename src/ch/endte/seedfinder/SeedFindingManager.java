@@ -52,25 +52,26 @@ public class SeedFindingManager {
 		for(Message m: com.receive()) {
 			switch (m.command) {
 			case RETURN_PASSED_FILTER_1:
-				fileWriter.append(m.command.id + " " + m.parameters);
+				fileWriter.append(m.command.id + " " + m.parameters + "\n");
 				String seed = m.parameters.split(" ", 2)[0];
-				fileWriter.append(Token.ADD_TASK.id + " " + Filter2Task.id + " " + seed);
+				fileWriter.append(Token.ADD_TASK.id + " " + Filter2Task.id + " " + seed + "\n");
 				com.send(new Message(Token.ADD_TASK, Filter2Task.id + " " + seed));
 				break;
 			case RETURN_PASSED_FILTER_2:
-				fileWriter.append(m.command.id + " " + m.parameters);
+				fileWriter.append(m.command.id + " " + m.parameters + "\n");
 				seed = m.parameters.split(" ", 2)[0];
-				fileWriter.append(Token.ADD_TASK.id + " " + EvaluationTask.id + " " + seed);
+				fileWriter.append(Token.ADD_TASK.id + " " + EvaluationTask.id + " " + seed + "\n");
 				com.send(new Message(Token.ADD_TASK, EvaluationTask.id + " " + seed));
 				break;
 			case RETURN_EVALUATION_SCORE:
 			case FINISH_TASK:
-				fileWriter.append(m.command.id + " " + m.parameters);
+				fileWriter.append(m.command.id + " " + m.parameters + "\n");
 				break;
 			default:
 				break;
 			
 			}
 		}
+		fileWriter.flush();
 	}
 }

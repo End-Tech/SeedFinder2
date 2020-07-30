@@ -2,10 +2,11 @@ package ch.endte.seedfinder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class DirectTokenCommunication implements TokenCommunication {
 	
-	private ArrayList<Message> messageQueue = new ArrayList<Message>();
+	private ConcurrentLinkedQueue<Message> messageQueue = new ConcurrentLinkedQueue<Message>();
 	
 	// epic circular reference :)
 	private DirectTokenCommunication target;
@@ -25,27 +26,30 @@ public class DirectTokenCommunication implements TokenCommunication {
 	private DirectTokenCommunication() {}
 	
 	@Override
-	public synchronized List<Message> receive() {
-		List<Message> result = (List<Message>) messageQueue;
-		messageQueue = new ArrayList<Message>();
+	public List<Message> receive() {
+		ArrayList<Message> result = new ArrayList<Message>();
+		for (Message m: messageQueue) {
+			result.add(m);
+			messageQueue.remove(m);
+		}
 		return result;
 	}
 
 	@Override
-	public synchronized void send(List<Message> m) {
+	public void send(List<Message> m) {
 		if (this.target != null)target.addMessageFrom(m, this);
 	}
 
 	@Override
-	public synchronized void send(Message m) {
+	public void send(Message m) {
 		if (this.target != null)target.addMessageFrom(m, this);
 	}
 	
-	private synchronized void addMessageFrom(List<Message> m, DirectTokenCommunication c) {
+	private void addMessageFrom(List<Message> m, DirectTokenCommunication c) {
 		if (!isClosedFrom(c))messageQueue.addAll(m);
 	}
 	
-	private synchronized void addMessageFrom(Message m, DirectTokenCommunication c) {
+	private void addMessageFrom(Message m, DirectTokenCommunication c) {
 		if (!isClosedFrom(c))messageQueue.add(m);
 	}
 
@@ -62,10 +66,10 @@ public class DirectTokenCommunication implements TokenCommunication {
 		}
 	}
 	
-	private synchronized void closeFrom(DirectTokenCommunication t) {if (target == t) {target = null;}}
+	private void closeFrom(DirectTokenCommunication t) {if (target == t) {target = null;}}
 
 	@Override
-	public synchronized boolean isClosed() {return target == null || target.isClosedFrom(this);}
-	public synchronized boolean isClosedFrom(DirectTokenCommunication t) {return target != t;}
+	public boolean isClosed() {return target == null || target.isClosedFrom(this);}
+	public boolean isClosedFrom(DirectTokenCommunication t) {return target != t;}
 	
 }

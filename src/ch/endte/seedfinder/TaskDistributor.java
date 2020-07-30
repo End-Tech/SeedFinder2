@@ -10,6 +10,8 @@ public class TaskDistributor {
 	private final ArrayList<Connection> clients = new ArrayList<Connection>();
 	private final ArrayList<SpecificTask> queue = new ArrayList<SpecificTask>();
 	
+	private boolean didRequest = false;
+	
 	public TaskDistributor(TokenCommunication c) {com = c;}
 	
 	public void addConnection(TokenCommunication c) {clients.add(new Connection(c));}
@@ -31,6 +33,7 @@ public class TaskDistributor {
 					throw new IllegalArgumentException();
 				}
 				queue.add(new SpecificTask(t, parameters[1]));
+				didRequest = false;
 				break;
 			case SHUTDOWN:
 				com.close();
@@ -39,7 +42,8 @@ public class TaskDistributor {
 				break;
 			}
 		}
-		if (queue.size() < clients.size()) {
+		if (queue.size() < clients.size() && !didRequest) {
+			didRequest = true;
 			com.send(new Message(Token.REQUEST_TASK, Integer.toString(clients.size()*3)));
 		}
 		com.flush();
@@ -49,7 +53,6 @@ public class TaskDistributor {
 		for(Connection c: clients) {
 			if (c.com.isClosed()) continue;
 			for (Message m: c.com.receive()) {
-				System.out.println(m.command.id + " " + m.parameters);
 				switch (m.command) {
 				case REQUEST_TASK:
 					c.requestCount = Integer.parseInt(m.parameters);
