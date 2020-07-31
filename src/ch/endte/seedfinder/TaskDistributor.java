@@ -16,6 +16,14 @@ public class TaskDistributor {
 	
 	public void addConnection(TokenCommunication c) {clients.add(new Connection(c));}
 	
+	public boolean hasOpenTasks() {
+		if (!queue.isEmpty())return true;
+		for (Connection c: clients) {
+			if (!c.tasks.isEmpty())return true;
+		}
+		return false;
+	}
+	
 	public void tick() {
 		handleServerCommunication();
 		handleClientDistribution();
@@ -23,20 +31,24 @@ public class TaskDistributor {
 	}
 	
 	private void handleServerCommunication() {
-		if (com.isClosed()) return;
 		for (Message m: com.receive()) {
 			switch (m.command) {
 			case ADD_TASK:
 				String[] parameters  = m.parameters.split(" ", 2);
 				Task t = Task.getTask(parameters[0]);
 				if (t == null) {
-					throw new IllegalArgumentException();
+					break;
 				}
 				queue.add(new SpecificTask(t, parameters[1]));
 				didRequest = false;
 				break;
 			case SHUTDOWN:
 				com.close();
+				for (Connection c: clients) {
+					c.com.send(m);
+					c.com.flush();
+					c.com.close();
+				}
 				return;
 			default:
 				break;

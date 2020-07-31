@@ -74,4 +74,10 @@ public class SeedFindingManager {
 		}
 		fileWriter.flush();
 	}
+
+	public void shutdown() {
+		com.send(new Message(Token.SHUTDOWN));
+		com.flush();
+		com.close();
+	}
 }

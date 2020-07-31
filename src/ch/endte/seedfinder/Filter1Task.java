@@ -20,7 +20,6 @@ public class Filter1Task extends Task {
 	
 	public static final SwampHut SWAMP_HUT = new SwampHut(MCVersion.v1_16);
 	public static final Stronghold STRONGHOLD = new Stronghold(MCVersion.v1_7);
-	public static final Monument MONUMENT = new Monument(MCVersion.v1_16);
 	public static final DesertPyramid DESERT_PYRAMID = new DesertPyramid(MCVersion.v1_16);
 	
 	private final ChunkRand rand = new ChunkRand();

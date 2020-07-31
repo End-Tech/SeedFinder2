@@ -11,7 +11,7 @@ public enum Token {
 	
 	// task specific communication of results
 	RETURN_PASSED_FILTER_1("RETURNFILTER1"),
-	RETURN_PASSED_FILTER_2("RETURNFILTER1"),
+	RETURN_PASSED_FILTER_2("RETURNFILTER2"),
 	RETURN_EVALUATION_SCORE("RETURNEVALUATION");
 	
 	public final String id;

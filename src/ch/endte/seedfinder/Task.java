@@ -21,6 +21,7 @@ public abstract class Task {
 	
 	static {
 		registerTask(new Filter1Task());
+		registerTask(new Filter2Task());
 		registerTask(new DebugTask());
 	}
 }
