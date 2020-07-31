@@ -24,55 +24,42 @@ public class Filter2Task extends Task {
 	public static final PillagerOutpost PILLAGER_OUTPOST = new PillagerOutpost(MCVersion.v1_16);
 	public static final Fortress FORTRESS = new Fortress(MCVersion.v1_16);
 	
-	public static final ArrayList<FeatureSearchData> SEARCH_PROTOTYPE = new ArrayList<FeatureSearchData>();
-	
-	private final ChunkRand rand = new ChunkRand();
-	private OverworldBiomeSource oSource;
-	private NetherBiomeSource nSource;
-	private long worldSeed;
-	private ArrayList<FeatureSearchData> searchList;
-	private ArrayList<ResultContainer> resultContainer;
-	
-	
 	@Override
 	public void run(String parameter, TokenCommunication c) {
 		String[] line = parameter.split(Pattern.quote(" "));
-		worldSeed = Long.parseLong(line[0]);
-		oSource = new OverworldBiomeSource(MCVersion.v1_16, worldSeed);
-		nSource = new NetherBiomeSource(MCVersion.v1_16, worldSeed);
-		CPos[] firstStarts = STRONGHOLD.getStarts(oSource, 34, rand);
+		Context g = new Context(Long.parseLong(line[0]),
+				new FeatureSearchData(MONUMENT,false,15,1),
+				new FeatureSearchData(FORTRESS,true,18,2),
+				new FeatureSearchData(PILLAGER_OUTPOST,false,21,4)
+				);
+		CPos[] firstStarts = STRONGHOLD.getStarts(g.oSource, 34, g.rand);
 		// start at 3 since quad witch hut at 0 and finding out
 		// whether the double is at 2 and/or 3 is unnecessary expensive
 		
-		searchList = (ArrayList<FeatureSearchData>) SEARCH_PROTOTYPE.clone();
-		resultContainer = new ArrayList<ResultContainer>();
-		for (FeatureSearchData fsd: searchList) {resultContainer.add(new ResultContainer(fsd));}
-		
 		for (int i=3;i<34;i++) {
-			ArrayList<FeatureSearchData> results = performSearch(firstStarts[i]);
-			if (results.size() == 1) foundEntry(results.get(0));
-			else if (results.size() > 0) foundMultiEntry(results);
-			if (resultContainer.size() == 0) {
+			ArrayList<FeatureSearchData> results = performSearch(g, firstStarts[i]);
+			if (results.size() == 1) foundEntry(g, results.get(0));
+			else if (results.size() > 0) foundMultiEntry(g, results);
+			if (g.resultContainer.size() == 0) {
 				c.send(new Message(Token.RETURN_PASSED_FILTER_2,line[0]));
 				return;
 			}
 		}
 	}
 	
-	private void foundEntry(FeatureSearchData fsd) {
-		searchList.remove(fsd);
+	private void foundEntry(Context g,FeatureSearchData fsd) {
+		g.searchList.remove(fsd);
 		ResultContainer cont = null;
-		for (ResultContainer rc: resultContainer) {
+		for (ResultContainer rc: g.resultContainer) {
 			if (rc.feature == fsd) {cont = rc;}
 			else if ((rc.relatedIds & fsd.bitId) != 0) {rc.relatedCount--;}
 		}
-		if (cont != null)resultContainer.remove(cont); //idiotic check but I get a warn about it so whatever
-		updateResultContainers();
+		if (cont != null)g.resultContainer.remove(cont); //idiotic check but I get a warn about it so whatever
+		updateResultContainers(g);
 	}
 	
-	private void foundMultiEntry(ArrayList<FeatureSearchData> results) {
-		System.out.println(results);
-		for (ResultContainer rc: resultContainer) {
+	private void foundMultiEntry(Context g,ArrayList<FeatureSearchData> results) {
+		for (ResultContainer rc: g.resultContainer) {
 			if (results.contains(rc.feature)) {
 				rc.foundCount++;
 				for (FeatureSearchData fsd: results) {
@@ -83,61 +70,62 @@ public class Filter2Task extends Task {
 				}
 			}
 		}
-		updateResultContainers();
+		updateResultContainers(g);
 	}
 
-	private void updateResultContainers() {
+	private void updateResultContainers(Context g) {
 		FeatureSearchData found = null;
-		for (ResultContainer rc: resultContainer) {
+		for (ResultContainer rc: g.resultContainer) {
 			if (rc.foundCount >= rc.relatedCount) {
 				found = rc.feature;
 				break;
 			}
 		}
-		if (found != null)foundEntry(found);
+		if (found != null)foundEntry(g, found);
 	}
 
-	private ArrayList<FeatureSearchData> performSearch(CPos stronghold) {
+	private ArrayList<FeatureSearchData> performSearch(Context g, CPos stronghold) {
 		ArrayList<FeatureSearchData> found = new ArrayList<FeatureSearchData>();
-		for (FeatureSearchData fsd: searchList) {
+		for (FeatureSearchData fsd: g.searchList) {
 			// adapted from KaptainWutax Pillager Outpost verification code:
 			CPos nw = toRegion(stronghold.getX()-fsd.searchExtension, stronghold.getZ()-fsd.searchExtension, fsd.feature);
 			CPos se = toRegion(stronghold.getX()+fsd.searchExtension, stronghold.getZ()+fsd.searchExtension, fsd.feature);
-			CPos featurePos = fsd.feature.getInRegion(worldSeed, nw.getX(), nw.getZ(), rand);
+			CPos featurePos = fsd.feature.getInRegion(g.worldSeed, nw.getX(), nw.getZ(), g.rand);
 			if (featurePos != null
 					&& stronghold.distanceTo(featurePos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
-					&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?nSource:oSource)) {
+					&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?g.nSource:g.oSource)) {
 				found.add(fsd);
 				continue;
 			}
 			if (se.getX() != nw.getX()) {
-				featurePos = fsd.feature.getInRegion(worldSeed, se.getX(), nw.getZ(), rand);
+				featurePos = fsd.feature.getInRegion(g.worldSeed, se.getX(), nw.getZ(), g.rand);
 				if (featurePos != null
 						&& stronghold.distanceTo(featurePos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
-						&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?nSource:oSource)) {
+						&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?g.nSource:g.oSource)) {
 					found.add(fsd);
 					continue;
 				}
 				if (se.getZ() != nw.getZ()) {
-					featurePos = fsd.feature.getInRegion(worldSeed, nw.getX(), se.getZ(), rand);
+					featurePos = fsd.feature.getInRegion(g.worldSeed, nw.getX(), se.getZ(), g.rand);
 					if (featurePos != null
 							&& stronghold.distanceTo(featurePos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
-							&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?nSource:oSource)) {
+							&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?g.nSource:g.oSource)) {
 						found.add(fsd);
 						continue;
 					}
-					featurePos = fsd.feature.getInRegion(worldSeed, se.getX(), se.getZ(), rand);
+					featurePos = fsd.feature.getInRegion(g.worldSeed, se.getX(), se.getZ(), g.rand);
 					if (featurePos != null
 							&& stronghold.distanceTo(featurePos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
-							&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?nSource:oSource)) {
+							&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?g.nSource:g.oSource)) {
 						found.add(fsd);
 						continue;
 					}
 				}
 			} else if (se.getZ() != nw.getZ()) {
-				featurePos = fsd.feature.getInRegion(worldSeed, nw.getX(), se.getZ(), rand);
-				if (stronghold.distanceTo(featurePos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
-						&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?nSource:oSource)) {
+				featurePos = fsd.feature.getInRegion(g.worldSeed, nw.getX(), se.getZ(), g.rand);
+				if (featurePos != null
+						&& stronghold.distanceTo(featurePos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
+						&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?g.nSource:g.oSource)) {
 					found.add(fsd);
 					continue;
 				}
@@ -157,12 +145,12 @@ public class Filter2Task extends Task {
 	}
 	
 	private static class FeatureSearchData {
-		RegionStructure feature;
+		RegionStructure<?,?> feature;
 		boolean isNether;
 		int searchExtension;
 		int bitId;
 		
-		public FeatureSearchData(RegionStructure f, boolean in, int se, int bid) {
+		public FeatureSearchData(RegionStructure<?,?> f, boolean in, int se, int bid) {
 			feature = f;
 			isNether = in;
 			searchExtension = se;
@@ -186,10 +174,23 @@ public class Filter2Task extends Task {
 		
 	}
 	
-	static {
-		SEARCH_PROTOTYPE.add(new FeatureSearchData(MONUMENT,false,15,1));
-		SEARCH_PROTOTYPE.add(new FeatureSearchData(FORTRESS,true,18,2));
-		SEARCH_PROTOTYPE.add(new FeatureSearchData(PILLAGER_OUTPOST,false,21,4));
+	private static class Context {
+		final ChunkRand rand = new ChunkRand();
+		OverworldBiomeSource oSource;
+		NetherBiomeSource nSource;
+		long worldSeed;
+		final ArrayList<ResultContainer> resultContainer = new ArrayList<>();
+		final ArrayList<FeatureSearchData> searchList = new ArrayList<>();
+		
+		Context(long seed, FeatureSearchData... features) {
+			worldSeed = seed;
+			oSource = new OverworldBiomeSource(MCVersion.v1_16, worldSeed);
+			nSource = new NetherBiomeSource(MCVersion.v1_16, worldSeed);
+			for(int i=0;i<features.length;i++) {
+				searchList.add(features[i]);
+				resultContainer.add(new ResultContainer(features[i]));
+			}
+		}
 	}
 
 }

@@ -16,6 +16,8 @@ public class SeedFindingManager {
 	private TokenCommunication com;
 	private String saveFile;
 	private BufferedWriter fileWriter;
+	private int activeCount = 0;
+	private int totalCount = 0;
 	
 	public SeedFindingManager(TokenCommunication com, String saveFile) throws IOException {
 		this.saveFile = saveFile;
@@ -23,6 +25,9 @@ public class SeedFindingManager {
 		load();
 		fileWriter = new BufferedWriter(new FileWriter(saveFile, true));
 	}
+	
+	public int getActiveCount(){return activeCount;}
+	public int getTotalCount(){return totalCount;}
 	
 	private void load() throws IOException {
 		HashMap<String, Message> activeTasks = new HashMap<String, Message>();
@@ -32,10 +37,16 @@ public class SeedFindingManager {
 			Message m = new Message(Token.getToken(mText[0]),mText[1]);
 			switch (m.command) {
 			case ADD_TASK:
+				String[] parameters  = m.parameters.split(" ", 2);
+				Task t = Task.getTask(parameters[0]);
+				if (t == null) {
+					break;
+				}
 				activeTasks.put(m.parameters, m);
 				break;
 			case FINISH_TASK:
-				activeTasks.remove(m.parameters);
+				if (activeTasks.remove(m.parameters) == null)
+					throw new IllegalArgumentException("Finished unstarted task " + m.parameters);
 				break;
 			default:
 				continue;
@@ -44,6 +55,8 @@ public class SeedFindingManager {
 		br.close();
 		ArrayList<Message> taskList = new ArrayList<Message>();
 		taskList.addAll(activeTasks.values());
+		activeCount = taskList.size();
+		totalCount = activeCount;
 		com.send(taskList);
 		com.flush();
 	}
@@ -63,8 +76,9 @@ public class SeedFindingManager {
 				fileWriter.append(Token.ADD_TASK.id + " " + EvaluationTask.id + " " + seed + "\n");
 				com.send(new Message(Token.ADD_TASK, EvaluationTask.id + " " + seed));
 				break;
-			case RETURN_EVALUATION_SCORE:
 			case FINISH_TASK:
+				activeCount--;
+			case RETURN_EVALUATION_SCORE:
 				fileWriter.append(m.command.id + " " + m.parameters + "\n");
 				break;
 			default:
