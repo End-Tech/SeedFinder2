@@ -19,6 +19,9 @@ public class Filter2Task extends Task {
 
 	public static final String id = "FILTER2";
 	
+	public static final int STRONGHOLD_SEARCH_COUNT = 34;
+	public static final int STRONGHOLD_SEARCH_RANGE = 16000/16;
+	
 	public static final Stronghold STRONGHOLD = new Stronghold(MCVersion.v1_7);
 	public static final Monument MONUMENT = new Monument(MCVersion.v1_16);
 	public static final PillagerOutpost PILLAGER_OUTPOST = new PillagerOutpost(MCVersion.v1_16);
@@ -28,15 +31,19 @@ public class Filter2Task extends Task {
 	public void run(String parameter, TokenCommunication c) {
 		String[] line = parameter.split(Pattern.quote(" "));
 		Context g = new Context(Long.parseLong(line[0]),
-				new FeatureSearchData(MONUMENT,false,15,1),
-				new FeatureSearchData(FORTRESS,true,18,2),
-				new FeatureSearchData(PILLAGER_OUTPOST,false,21,4)
+				new FeatureSearchData(MONUMENT,false,15,1,1),
+				new FeatureSearchData(FORTRESS,true,18,2,8),
+				new FeatureSearchData(PILLAGER_OUTPOST,false,21,4,1)
 				);
-		CPos[] firstStarts = STRONGHOLD.getStarts(g.oSource, 34, g.rand);
+		CPos[] firstStarts = STRONGHOLD.getStarts(g.oSource, STRONGHOLD_SEARCH_COUNT, g.rand);
 		// start at 3 since quad witch hut at 0 and finding out
 		// whether the double is at 2 and/or 3 is unnecessary expensive
 		
-		for (int i=3;i<34;i++) {
+		CPos nullPos = new CPos(0,0);
+		
+		for (int i=3;i<STRONGHOLD_SEARCH_COUNT;i++) {
+			if (nullPos.distanceTo(firstStarts[i], DistanceMetric.CHEBYSHEV) > STRONGHOLD_SEARCH_RANGE)
+				continue;
 			ArrayList<FeatureSearchData> results = performSearch(g, firstStarts[i]);
 			if (results.size() == 1) foundEntry(g, results.get(0));
 			else if (results.size() > 0) foundMultiEntry(g, results);
@@ -88,46 +95,57 @@ public class Filter2Task extends Task {
 		ArrayList<FeatureSearchData> found = new ArrayList<FeatureSearchData>();
 		for (FeatureSearchData fsd: g.searchList) {
 			// adapted from KaptainWutax Pillager Outpost verification code:
-			CPos nw = toRegion(stronghold.getX()-fsd.searchExtension, stronghold.getZ()-fsd.searchExtension, fsd.feature);
-			CPos se = toRegion(stronghold.getX()+fsd.searchExtension, stronghold.getZ()+fsd.searchExtension, fsd.feature);
+			CPos nw = toRegion((stronghold.getX()-fsd.searchExtension)/fsd.coordinateMultiplier, (stronghold.getZ()-fsd.searchExtension)/fsd.coordinateMultiplier, fsd.feature);
+			CPos se = toRegion((stronghold.getX()+fsd.searchExtension)/fsd.coordinateMultiplier, (stronghold.getZ()+fsd.searchExtension)/fsd.coordinateMultiplier, fsd.feature);
 			CPos featurePos = fsd.feature.getInRegion(g.worldSeed, nw.getX(), nw.getZ(), g.rand);
-			if (featurePos != null
-					&& stronghold.distanceTo(featurePos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
-					&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?g.nSource:g.oSource)) {
-				found.add(fsd);
-				continue;
-			}
-			if (se.getX() != nw.getX()) {
-				featurePos = fsd.feature.getInRegion(g.worldSeed, se.getX(), nw.getZ(), g.rand);
-				if (featurePos != null
-						&& stronghold.distanceTo(featurePos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
+			CPos dPos;
+			if (featurePos != null) {
+				dPos = new CPos(featurePos.getX()*fsd.coordinateMultiplier, featurePos.getZ()*fsd.coordinateMultiplier);
+				if (stronghold.distanceTo(dPos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
 						&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?g.nSource:g.oSource)) {
 					found.add(fsd);
 					continue;
 				}
-				if (se.getZ() != nw.getZ()) {
-					featurePos = fsd.feature.getInRegion(g.worldSeed, nw.getX(), se.getZ(), g.rand);
-					if (featurePos != null
-							&& stronghold.distanceTo(featurePos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
+			}
+			if (se.getX() != nw.getX()) {
+				featurePos = fsd.feature.getInRegion(g.worldSeed, se.getX(), nw.getZ(), g.rand);
+				if (featurePos != null) {
+					dPos = new CPos(featurePos.getX()*fsd.coordinateMultiplier, featurePos.getZ()*fsd.coordinateMultiplier);
+					if (stronghold.distanceTo(dPos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
 							&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?g.nSource:g.oSource)) {
 						found.add(fsd);
 						continue;
 					}
+				}
+				if (se.getZ() != nw.getZ()) {
+					featurePos = fsd.feature.getInRegion(g.worldSeed, nw.getX(), se.getZ(), g.rand);
+					if (featurePos != null) {
+						dPos = new CPos(featurePos.getX()*fsd.coordinateMultiplier, featurePos.getZ()*fsd.coordinateMultiplier);
+						if (stronghold.distanceTo(dPos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
+								&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?g.nSource:g.oSource)) {
+							found.add(fsd);
+							continue;
+						}
+					}
 					featurePos = fsd.feature.getInRegion(g.worldSeed, se.getX(), se.getZ(), g.rand);
-					if (featurePos != null
-							&& stronghold.distanceTo(featurePos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
-							&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?g.nSource:g.oSource)) {
-						found.add(fsd);
-						continue;
+					if (featurePos != null) {
+						dPos = new CPos(featurePos.getX()*fsd.coordinateMultiplier, featurePos.getZ()*fsd.coordinateMultiplier);
+						if (stronghold.distanceTo(dPos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
+								&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?g.nSource:g.oSource)) {
+							found.add(fsd);
+							continue;
+						}
 					}
 				}
 			} else if (se.getZ() != nw.getZ()) {
 				featurePos = fsd.feature.getInRegion(g.worldSeed, nw.getX(), se.getZ(), g.rand);
-				if (featurePos != null
-						&& stronghold.distanceTo(featurePos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
-						&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?g.nSource:g.oSource)) {
-					found.add(fsd);
-					continue;
+				if (featurePos != null) {
+					dPos = new CPos(featurePos.getX()*fsd.coordinateMultiplier, featurePos.getZ()*fsd.coordinateMultiplier);
+					if (stronghold.distanceTo(featurePos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
+							&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?g.nSource:g.oSource)) {
+						found.add(fsd);
+						continue;
+					}
 				}
 			}
 		}
@@ -149,12 +167,14 @@ public class Filter2Task extends Task {
 		boolean isNether;
 		int searchExtension;
 		int bitId;
+		int coordinateMultiplier;
 		
-		public FeatureSearchData(RegionStructure<?,?> f, boolean in, int se, int bid) {
+		public FeatureSearchData(RegionStructure<?,?> f, boolean in, int se, int bid, int cm) {
 			feature = f;
 			isNether = in;
 			searchExtension = se;
 			bitId = bid;
+			coordinateMultiplier = cm;
 		}
 		
 	}
