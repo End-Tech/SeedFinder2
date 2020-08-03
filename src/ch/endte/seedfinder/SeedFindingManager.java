@@ -75,7 +75,7 @@ public class SeedFindingManager {
 				break;
 			case FINISH_TASK:
 				activeCount--;
-			case RETURN_EVALUATION_SCORE:
+			case RETURN_EVALUATION_DATA:
 				fileWriter.append(m.command.id + " " + m.parameters + "\n");
 				break;
 			default:

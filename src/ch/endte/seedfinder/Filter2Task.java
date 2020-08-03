@@ -196,16 +196,16 @@ public class Filter2Task extends Task {
 	
 	private static class Context {
 		final ChunkRand rand = new ChunkRand();
-		OverworldBiomeSource oSource;
-		NetherBiomeSource nSource;
-		long worldSeed;
+		final OverworldBiomeSource oSource;
+		final NetherBiomeSource nSource;
+		final long worldSeed;
 		final ArrayList<ResultContainer> resultContainer = new ArrayList<>();
 		final ArrayList<FeatureSearchData> searchList = new ArrayList<>();
 		
 		Context(long seed, FeatureSearchData... features) {
 			worldSeed = seed;
-			oSource = new OverworldBiomeSource(MCVersion.v1_16, worldSeed);
-			nSource = new NetherBiomeSource(MCVersion.v1_16, worldSeed);
+			oSource = new OverworldBiomeSource(MCVersion.v1_16_1, worldSeed);
+			nSource = new NetherBiomeSource(MCVersion.v1_16_1, worldSeed);
 			for(int i=0;i<features.length;i++) {
 				searchList.add(features[i]);
 				resultContainer.add(new ResultContainer(features[i]));
