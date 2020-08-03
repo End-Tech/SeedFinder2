@@ -4,6 +4,7 @@ import java.util.List;
 
 public interface TokenCommunication {
 	public List<Message> receive();
+	public Message receiveOne();
 	public void send(List<Message> m);
 	public void send(Message m);
 	// assuming communication is buffered

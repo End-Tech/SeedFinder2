@@ -21,20 +21,19 @@ public class Filter1Task extends Task {
 	public static final SwampHut SWAMP_HUT = new SwampHut(MCVersion.v1_16);
 	public static final Stronghold STRONGHOLD = new Stronghold(MCVersion.v1_7);
 	public static final DesertPyramid DESERT_PYRAMID = new DesertPyramid(MCVersion.v1_16);
-	
-	private final ChunkRand rand = new ChunkRand();
 
 	@Override
 	public void run(String parameter, TokenCommunication c) {
+		Context g = new Context();
 		String[] line = parameter.split(Pattern.quote(" "));
 		long structureSeed = Long.parseLong(line[0]);
 		int regionX = Integer.parseInt(line[1]);
 		int regionZ = Integer.parseInt(line[2]);
 
-		CPos hut = SWAMP_HUT.getInRegion(structureSeed, regionX, regionZ, rand);
-		CPos hut1 = SWAMP_HUT.getInRegion(structureSeed, regionX - 1, regionZ - 1, rand);
-		CPos hut2 = SWAMP_HUT.getInRegion(structureSeed, regionX - 1, regionZ, rand);
-		CPos hut3 = SWAMP_HUT.getInRegion(structureSeed, regionX, regionZ - 1, rand);
+		CPos hut = SWAMP_HUT.getInRegion(structureSeed, regionX, regionZ, g.rand);
+		CPos hut1 = SWAMP_HUT.getInRegion(structureSeed, regionX - 1, regionZ - 1, g.rand);
+		CPos hut2 = SWAMP_HUT.getInRegion(structureSeed, regionX - 1, regionZ, g.rand);
+		CPos hut3 = SWAMP_HUT.getInRegion(structureSeed, regionX, regionZ - 1, g.rand);
 		CPos hutAfk = getAfkSpot(hut, hut1, hut2, hut3);
 		HashMap<CPos, Boolean> pyramidCache = new HashMap<CPos, Boolean>();
 		for(long upperBits = 0; upperBits < 1L << 16; upperBits++) {
@@ -44,10 +43,10 @@ public class Filter1Task extends Task {
 			if(!SWAMP_HUT.canSpawn(hut1.getX(), hut1.getZ(), source))continue;
 			if(!SWAMP_HUT.canSpawn(hut2.getX(), hut2.getZ(), source))continue;
 			if(!SWAMP_HUT.canSpawn(hut3.getX(), hut3.getZ(), source))continue;
-			CPos[] firstStarts = STRONGHOLD.getStarts(source, 3, rand);
+			CPos[] firstStarts = STRONGHOLD.getStarts(source, 3, g.rand);
 			if(hutAfk.distanceTo(firstStarts[0], DistanceMetric.CHEBYSHEV) > 15)continue;
-			if(!testDoublePyramid(source, firstStarts[1], rand, pyramidCache)
-					&& !testDoublePyramid(source, firstStarts[2], rand, pyramidCache))continue;
+			if(!testDoublePyramid(source, firstStarts[1], g.rand, pyramidCache)
+					&& !testDoublePyramid(source, firstStarts[2], g.rand, pyramidCache))continue;
 			c.send(new Message(Token.RETURN_PASSED_FILTER_1, Long.toString(worldSeed)));
 		}
 	}
@@ -120,5 +119,10 @@ public class Filter1Task extends Task {
 
 	@Override
 	public String getId() {return id;}
+	
+	private class Context {
+		private final ChunkRand rand = new ChunkRand();
+	}
+	
 	
 }

@@ -67,14 +67,11 @@ public class SeedFindingManager {
 			case RETURN_PASSED_FILTER_1:
 				fileWriter.append(m.command.id + " " + m.parameters + "\n");
 				String seed = m.parameters.split(" ", 2)[0];
-				fileWriter.append(Token.ADD_TASK.id + " " + Filter2Task.id + " " + seed + "\n");
-				com.send(new Message(Token.ADD_TASK, Filter2Task.id + " " + seed));
+				addTask(Filter2Task.id, seed);
 				break;
 			case RETURN_PASSED_FILTER_2:
 				fileWriter.append(m.command.id + " " + m.parameters + "\n");
-				seed = m.parameters.split(" ", 2)[0];
-				fileWriter.append(Token.ADD_TASK.id + " " + EvaluationTask.id + " " + seed + "\n");
-				com.send(new Message(Token.ADD_TASK, EvaluationTask.id + " " + seed));
+				addTask(EvaluationTask.id, m.parameters);
 				break;
 			case FINISH_TASK:
 				activeCount--;
@@ -94,4 +91,19 @@ public class SeedFindingManager {
 		com.flush();
 		com.close();
 	}
+
+	public boolean hasOpenTasks() {
+		// TODO Auto-generated method stub
+		return activeCount > 0;
+	}
+	
+	private void addTask(String taskId, String parameters) throws IOException {
+		fileWriter.append(Token.ADD_TASK.id + " " + taskId + " " + parameters + "\n");
+		if (Task.getTask(taskId) != null) {
+			com.send(new Message(Token.ADD_TASK, taskId + " " + parameters));
+			activeCount++;
+			totalCount++;
+		}
+	}
+
 }
