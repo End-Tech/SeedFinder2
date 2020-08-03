@@ -22,10 +22,10 @@ public class Filter2Task extends Task {
 	public static final int STRONGHOLD_SEARCH_COUNT = 34;
 	public static final int STRONGHOLD_SEARCH_RANGE = 16000/16;
 	
-	public static final Stronghold STRONGHOLD = new Stronghold(MCVersion.v1_7);
-	public static final Monument MONUMENT = new Monument(MCVersion.v1_16);
-	public static final PillagerOutpost PILLAGER_OUTPOST = new PillagerOutpost(MCVersion.v1_16);
-	public static final Fortress FORTRESS = new Fortress(MCVersion.v1_16);
+	public static final Stronghold STRONGHOLD = new Stronghold(MCVersion.v1_16_1);
+	public static final Monument MONUMENT = new Monument(MCVersion.v1_16_1);
+	public static final PillagerOutpost PILLAGER_OUTPOST = new PillagerOutpost(MCVersion.v1_16_1);
+	public static final Fortress FORTRESS = new Fortress(MCVersion.v1_16_1);
 	
 	@Override
 	public void run(String parameter, TokenCommunication c) {

@@ -5,7 +5,6 @@ import java.util.regex.Pattern;
 
 import kaptainwutax.biomeutils.source.OverworldBiomeSource;
 import kaptainwutax.featureutils.structure.DesertPyramid;
-import kaptainwutax.featureutils.structure.Monument;
 import kaptainwutax.featureutils.structure.RegionStructure;
 import kaptainwutax.featureutils.structure.Stronghold;
 import kaptainwutax.featureutils.structure.SwampHut;
@@ -18,9 +17,9 @@ public class Filter1Task extends Task {
 	
 	public static final String id = "FILTER1";
 	
-	public static final SwampHut SWAMP_HUT = new SwampHut(MCVersion.v1_16);
-	public static final Stronghold STRONGHOLD = new Stronghold(MCVersion.v1_7);
-	public static final DesertPyramid DESERT_PYRAMID = new DesertPyramid(MCVersion.v1_16);
+	public static final SwampHut SWAMP_HUT = new SwampHut(MCVersion.v1_16_1);
+	public static final Stronghold STRONGHOLD = new Stronghold(MCVersion.v1_16_1);
+	public static final DesertPyramid DESERT_PYRAMID = new DesertPyramid(MCVersion.v1_16_1);
 
 	@Override
 	public void run(String parameter, TokenCommunication c) {

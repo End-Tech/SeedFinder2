@@ -1,0 +1,66 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+}
+
+plugins {
+    // Apply the java plugin to add support for Java
+    id 'java'
+
+    // Apply the application plugin to add support for building a CLI application
+    id 'application'
+    id 'idea'
+    id 'eclipse'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
+}
+
+repositories {
+        mavenCentral()
+
+    	maven {
+        	url "https://jitpack.io"
+    	}
+}
+
+dependencies {
+
+    implementation('com.github.KaptainWutax:BiomeUtils:94098e9d2bd8bc4f1134d4b79dfa82d70ef90979') {
+        transitive = false
+    }
+
+    implementation('com.github.KaptainWutax:FeatureUtils:67098281211343ed9a0c5216e021c63db54f3ba2') {
+        transitive = false
+    }
+    
+    implementation('com.github.KaptainWutax:SeedUtils:b5bf2e23610cc0eebcb91443788228c2ed446914') {
+        transitive = false
+    }
+    // Use JUnit test framework
+    testImplementation 'junit:junit:4.12'
+}
+
+sourceSets {
+    main {
+         java {
+            srcDirs = ['src']
+         }
+    }
+
+    test {
+        java {
+            srcDirs = ['test']
+        }
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'ch.endte.seedfinder.SeedFinder2'
+    }
+}
+
+application {
+    // Define the main class for the application
+    mainClassName = 'ch.endte.seedfinder.SeedFinder2'
+}
