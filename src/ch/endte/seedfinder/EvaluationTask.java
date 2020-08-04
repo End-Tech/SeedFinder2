@@ -86,7 +86,7 @@ public class EvaluationTask extends Task {
 		CPos outpostPos;
 		
 		// store any extra structure we look for (WitchHuts and Pyramids)
-		ArrayList<ExtraStructure> list = new ArrayList<ExtraStructure>();
+		ArrayList<ExtraStructure> structureList = new ArrayList<ExtraStructure>();
 		
 		// store the found long mesa (if any)
 		CPos longMesaStart;
@@ -94,12 +94,30 @@ public class EvaluationTask extends Task {
 		
 		// used to turn a result to a message 
 		public String toString() {
-			return null;
+			StringBuilder sb = new StringBuilder(); 
+			sb.append(posToString(slimeChunkStronghold)+","+posToString(slimeChunkCenter)+","+slimeChunkMaxCount+";");
+			sb.append(spawnCenterBiomes.toString()+","+spawnRimBiomes.toString()+";");
+			
+			sb.append(posToString(quadWitchHutPos)+","+posToString(doublePyramidPos)+",");
+			sb.append(posToString(monumentPos)+","+posToString(fortressPos)+",");
+			sb.append(posToString(outpostPos)+";");
+			
+			for (ExtraStructure es: structureList) {
+				sb.append(es.structureName+":"+posToString(es.pos)+",");
+			}
+			sb.replace(sb.length(), sb.length(), ";");
+			sb.append(posToString(longMesaStart)+","+posToString(longMesaEnd)+";");
+			return sb.toString();
 		}
 		
 		// used to construct a result from a message for later use
 		public void fromString(String data) {
 			
+		}
+		
+		private String posToString(CPos pos) {
+			if (pos == null) {return "/";}
+			return pos.getX() + "/" + pos.getZ();
 		}
 		
 		// used to contain one extra structure found around strongholds
