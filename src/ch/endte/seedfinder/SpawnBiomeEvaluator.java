@@ -5,8 +5,8 @@ import ch.endte.seedfinder.EvaluationTask.Result;
 
 public class SpawnBiomeEvaluator {
 	
-	public static int SIZE = 10;
-	public static int RIM_SIZE = 3;
+	public static int SIZE = 1111;
+	public static int RIM_SIZE = 10;
 	public static int SIZE_SQ = SIZE*SIZE;
 	public static int RIM_OUTERSIZE_SQ = (SIZE+RIM_SIZE)*(SIZE+RIM_SIZE);
 	public static int RIM_INNERSIZE_SQ = (SIZE-RIM_SIZE)*(SIZE-RIM_SIZE);
