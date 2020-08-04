@@ -45,7 +45,7 @@ public class SeedFinder2 {
 			r.worldSeed = seed;
 
 			System.out.println(seed);
-			mesaBiomeEvaluator.evaluate(g, r, 50000);
+			mesaBiomeEvaluator.evaluate(g, r);
 		}
 	}
 }

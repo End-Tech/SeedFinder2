@@ -9,6 +9,7 @@ import java.util.ArrayList;
 public class MesaBiomeEvaluator {
 	private final static int REQUIRED_SIZE = 4;
 	private final static int DISTANCE_BETWEEN_POINTS = 500;
+	private final static int DISTANCE_FROM_SPAWN = 50_000;
 
 	/**
 	 * Finds the closes/largest mesa strip to spawn.
@@ -16,20 +17,23 @@ public class MesaBiomeEvaluator {
 	 *
 	 * @param g Context
 	 * @param r Result
-	 * @param distance Distance from spawn the Mesa will be in
 	 */
-	public void evaluate(Context g, Result r, int distance) {
+	public void evaluate(Context g, Result r) {
 
 		ArrayList<int[]> alreadyUsedPoints = new ArrayList<int[]>();
-		int gridLength = distance / DISTANCE_BETWEEN_POINTS;
+		int gridLength = DISTANCE_FROM_SPAWN * 2 / DISTANCE_BETWEEN_POINTS;
 		boolean[][] grid = new boolean[gridLength][gridLength];
 
-		// Creates a 2D array of points, distanced by `DISTANCE_BETWEEN_POINTS` blocks to each other, within `distance` blocks from 0, 0.
+		// Creates a 2D array of points, distanced by 50k blocks to each other, within `distance` blocks from 0, 0.
 		// If a point is true, it is a Mesa.
 		for (int x = 0; x < gridLength; x++) {
 			for (int z = 0; z < gridLength; z++) {
 				int scale = g.oSource.biomes.getScale();
-				int biomeId = g.oSource.biomes.get(Math.floorDiv(x*DISTANCE_BETWEEN_POINTS, scale), 0, Math.floorDiv(z*DISTANCE_BETWEEN_POINTS, scale));
+				int biomeId = g.oSource.biomes.get(
+						Math.floorDiv(x * DISTANCE_BETWEEN_POINTS - DISTANCE_FROM_SPAWN, scale),
+						0,
+						Math.floorDiv(z * DISTANCE_BETWEEN_POINTS - DISTANCE_FROM_SPAWN, scale)
+				);
 
 				grid[x][z] = (biomeId == Biome.BADLANDS.getId() || biomeId == Biome.BADLANDS_PLATEAU.getId() || biomeId == Biome.ERODED_BADLANDS.getId());
 			}
@@ -62,7 +66,7 @@ public class MesaBiomeEvaluator {
 
 					if (size < REQUIRED_SIZE) size = 0;
 					else {
-						itsAGudMesa(x, z, alreadyUsedPoints);
+						itsAGudMesa(x, z, alreadyUsedPoints, r);
 					}
 
 					try {
@@ -82,15 +86,18 @@ public class MesaBiomeEvaluator {
 					} catch (ArrayIndexOutOfBoundsException e) { /* endtech besttech */ }
 
 					if (size >= REQUIRED_SIZE)
-						itsAGudMesa(x, z, alreadyUsedPoints);
-				};
+						itsAGudMesa(x, z, alreadyUsedPoints, r);
+				}
+				;
 			}
 		}
 	}
 
-	private void itsAGudMesa(int x, int z, ArrayList<int[]> alreadyUsedPoints) {
+	private void itsAGudMesa(int x, int z, ArrayList<int[]> alreadyUsedPoints, Result r) {
 		alreadyUsedPoints.add(new int[]{x, z});
-		System.out.println("x" + x*DISTANCE_BETWEEN_POINTS + " z" + z*DISTANCE_BETWEEN_POINTS);
+		int xRealCoordinate = x * DISTANCE_BETWEEN_POINTS - DISTANCE_FROM_SPAWN;
+		int zRealCoordinate = z * DISTANCE_BETWEEN_POINTS - DISTANCE_FROM_SPAWN;
+		System.out.println("x" + xRealCoordinate + " z" + zRealCoordinate);
 	}
 
 	private boolean isAlreadyUsed(int x, int z, ArrayList<int[]> alreadyUsedPoints) {

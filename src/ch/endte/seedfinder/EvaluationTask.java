@@ -36,7 +36,7 @@ public class EvaluationTask extends Task {
 		SLIME_CHUNK.evaluate(g, r);
 		SPAWN_BIOME.evaluate(g, r);
 		STRUCTURE.evaluate(g, r);
-		MESA_STRIP.evaluate(g, r, 50000);
+		MESA_STRIP.evaluate(g, r);
 		// finally print the meta data as is so that scoring can be applied
 		c.send(new Message(Token.RETURN_EVALUATION_DATA, r.toString()));
 	}
