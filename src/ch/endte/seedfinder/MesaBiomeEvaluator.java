@@ -4,8 +4,6 @@ import ch.endte.seedfinder.EvaluationTask.Context;
 import ch.endte.seedfinder.EvaluationTask.Result;
 import kaptainwutax.biomeutils.Biome;
 
-import java.awt.*;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class MesaBiomeEvaluator {
@@ -30,7 +28,9 @@ public class MesaBiomeEvaluator {
 		// If a point is true, it is a Mesa.
 		for (int x = 0; x < gridLength; x++) {
 			for (int z = 0; z < gridLength; z++) {
-				int biomeId = g.oSource.biomes.get(x*DISTANCE_BETWEEN_POINTS, 0, z*DISTANCE_BETWEEN_POINTS);
+				int scale = g.oSource.biomes.getScale();
+				int biomeId = g.oSource.biomes.get(Math.floorDiv(x*DISTANCE_BETWEEN_POINTS, scale), 0, Math.floorDiv(z*DISTANCE_BETWEEN_POINTS, scale));
+
 				grid[x][z] = (biomeId == Biome.BADLANDS.getId() || biomeId == Biome.BADLANDS_PLATEAU.getId() || biomeId == Biome.ERODED_BADLANDS.getId());
 			}
 		}
