@@ -26,7 +26,7 @@ public class EvaluationTask extends Task {
 	@Override
 	public void run(String parameter, TokenCommunication c) {
 		// get all the parameters
-		long seed = Integer.parseInt(parameter);
+		long seed = Long.parseLong(parameter);
 		// set all the important meta parameters
 		Context g = new Context(seed);
 		g.stronghold = STRONGHOLD.getStarts(g.oSource, STRONGHOLD_SEARCH_COUNT, g.rand);
