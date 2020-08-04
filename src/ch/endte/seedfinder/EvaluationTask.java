@@ -36,7 +36,7 @@ public class EvaluationTask extends Task {
 		SLIME_CHUNK.evaluate(g, r);
 		SPAWN_BIOME.evaluate(g, r);
 		STRUCTURE.evaluate(g, r);
-		MESA_STRIP.evaluate(g, r);
+		MESA_STRIP.evaluate(g, r, 50000);
 		// finally print the meta data as is so that scoring can be applied
 		c.send(new Message(Token.RETURN_EVALUATION_DATA, r.toString()));
 	}
@@ -48,7 +48,7 @@ public class EvaluationTask extends Task {
 	}
 	
 	// contains the working information for one seed
-	public class Context {
+	public static class Context {
 		final ChunkRand rand = new ChunkRand();
 		final long worldSeed;
 		final OverworldBiomeSource oSource;
@@ -65,7 +65,7 @@ public class EvaluationTask extends Task {
 	
 	// contains the result of the evaluation and will be returned by it
 	// ad string
-	public class Result {
+	public static class Result {
 		
 		long worldSeed;
 		
