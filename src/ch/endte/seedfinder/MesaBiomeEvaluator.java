@@ -28,8 +28,7 @@ public class MesaBiomeEvaluator {
 		MesaGrid biomeGrid = new MesaGrid(gridLength, gridLength);
 		ArrayList<MesaPoint> confirmedMesas = new ArrayList<MesaPoint>(); // Just not to loop through unecessary points
 
-		// Creates a 2D array of points, distanced by 50k blocks to each other, within `distance` blocks from 0, 0.
-		// If a point is true, it is a Mesa.
+		// Sets MesaPoint to be accurate whether they are Mesas or not.
 		int scale = g.oSource.biomes.getScale();
 		biomeGrid.initiateGrid();
 
