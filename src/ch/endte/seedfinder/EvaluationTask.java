@@ -94,20 +94,36 @@ public class EvaluationTask extends Task {
 		
 		// used to turn a result to a message 
 		public String toString() {
-			StringBuilder sb = new StringBuilder(); 
-			sb.append(posToString(slimeChunkStronghold)+","+posToString(slimeChunkCenter)+","+slimeChunkMaxCount+";");
-			sb.append(spawnCenterBiomes.toString()+","+spawnRimBiomes.toString()+";");
+			StringBuilder sb = new StringBuilder();
 			
-			sb.append(posToString(quadWitchHutPos)+","+posToString(doublePyramidPos)+",");
-			sb.append(posToString(monumentPos)+","+posToString(fortressPos)+",");
-			sb.append(posToString(outpostPos)+";");
+			sb.append("{\"seed\":"+worldSeed+",");
 			
+			sb.append("\"slimechunk\":{");
+			sb.append("\"stronghold\":"+posToString(slimeChunkStronghold));
+			sb.append(",\"center\"+posToString(slimeChunkCenter)");
+			sb.append(",\"count\":"+slimeChunkMaxCount+"},");
+			
+			sb.append("\"spawnBiomes\":{\"center\":"+spawnCenterBiomes.toString());
+			sb.append(",\"rim\":"+spawnRimBiomes.toString()+"},");
+			
+			sb.append("\"mandatorystructures\":{");
+			sb.append("\"quadHut\":"+posToString(quadWitchHutPos));
+			sb.append(",\"doublePyramid\":"+posToString(doublePyramidPos));
+			sb.append(",\"monument\":"+posToString(monumentPos));
+			sb.append(",\"fortress\":"+posToString(fortressPos));
+			sb.append(",\"outpost\":"+posToString(outpostPos)+"},");
+			
+			sb.append("\"extrastructures\":[");
+			boolean comma = false;
 			for (ExtraStructure es: structureList) {
-				sb.append(es.structureName+":"+posToString(es.pos)+",");
+				if (comma) {sb.append(",");}
+				else {comma = true;}
+				sb.append("{\"name\":\""+es.structureName+"\",\"pos\":"+posToString(es.pos)+",\"count\":"+es.count+"}");
 			}
-			sb.replace(sb.length(), sb.length(), ";");
-			sb.append(posToString(longMesaStart)+","+posToString(longMesaEnd)+";");
-			return sb.toString();
+			sb.append("],");
+			
+			sb.append("\"longmesa\":{\"start\":"+posToString(longMesaStart)+",\"end\":"+posToString(longMesaEnd)+"}}");
+			return worldSeed+" "+sb.toString();
 		}
 		
 		// used to construct a result from a message for later use
@@ -116,14 +132,15 @@ public class EvaluationTask extends Task {
 		}
 		
 		private String posToString(CPos pos) {
-			if (pos == null) {return "/";}
-			return pos.getX() + "/" + pos.getZ();
+			if (pos == null) {return "[]";}
+			return "["+pos.getX()+","+pos.getZ()+"]";
 		}
 		
 		// used to contain one extra structure found around strongholds
 		class ExtraStructure {
 			CPos pos;
 			String structureName;
+			int count;
 		}
 		
 	}
