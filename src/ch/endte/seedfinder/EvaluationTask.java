@@ -26,7 +26,7 @@ public class EvaluationTask extends Task {
 	@Override
 	public void run(String parameter, TokenCommunication c) {
 		// get all the parameters
-		long seed = Integer.parseInt(parameter);
+		long seed = Long.parseLong(parameter);
 		// set all the important meta parameters
 		Context g = new Context(seed);
 		g.stronghold = STRONGHOLD.getStarts(g.oSource, STRONGHOLD_SEARCH_COUNT, g.rand);
@@ -86,7 +86,7 @@ public class EvaluationTask extends Task {
 		CPos outpostPos;
 		
 		// store any extra structure we look for (WitchHuts and Pyramids)
-		ArrayList<ExtraStructure> list = new ArrayList<ExtraStructure>();
+		ArrayList<ExtraStructure> structureList = new ArrayList<ExtraStructure>();
 		
 		// store the found long mesa (if any)
 		CPos longMesaStart;
@@ -95,7 +95,36 @@ public class EvaluationTask extends Task {
 		
 		// used to turn a result to a message 
 		public String toString() {
-			return null;
+			StringBuilder sb = new StringBuilder();
+			
+			sb.append("{\"seed\":"+worldSeed+",");
+			
+			sb.append("\"slimechunk\":{");
+			sb.append("\"stronghold\":"+posToString(slimeChunkStronghold));
+			sb.append(",\"center\":"+posToString(slimeChunkCenter));
+			sb.append(",\"count\":"+slimeChunkMaxCount+"},");
+			
+			sb.append("\"spawnBiomes\":{\"center\":"+spawnCenterBiomes.toString());
+			sb.append(",\"rim\":"+spawnRimBiomes.toString()+"},");
+			
+			sb.append("\"mandatorystructures\":{");
+			sb.append("\"quadHut\":"+posToString(quadWitchHutPos));
+			sb.append(",\"doublePyramid\":"+posToString(doublePyramidPos));
+			sb.append(",\"monument\":"+posToString(monumentPos));
+			sb.append(",\"fortress\":"+posToString(fortressPos));
+			sb.append(",\"outpost\":"+posToString(outpostPos)+"},");
+			
+			sb.append("\"extrastructures\":[");
+			boolean comma = false;
+			for (ExtraStructure es: structureList) {
+				if (comma) {sb.append(",");}
+				else {comma = true;}
+				sb.append("{\"name\":\""+es.structureName+"\",\"pos\":"+posToString(es.pos)+",\"count\":"+es.count+"}");
+			}
+			sb.append("],");
+			
+			sb.append("\"longmesa\":{\"start\":"+posToString(longMesaStart)+",\"end\":"+posToString(longMesaEnd)+"}}");
+			return worldSeed+" "+sb.toString();
 		}
 		
 		// used to construct a result from a message for later use
@@ -103,10 +132,16 @@ public class EvaluationTask extends Task {
 			
 		}
 		
+		private String posToString(CPos pos) {
+			if (pos == null) {return "[]";}
+			return "["+pos.getX()+","+pos.getZ()+"]";
+		}
+		
 		// used to contain one extra structure found around strongholds
 		class ExtraStructure {
 			CPos pos;
 			String structureName;
+			int count;
 		}
 		
 	}

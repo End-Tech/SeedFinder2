@@ -23,5 +23,6 @@ public abstract class Task {
 		registerTask(new Filter1Task());
 		registerTask(new Filter2Task());
 		registerTask(new DebugTask());
+		registerTask(new EvaluationTask());
 	}
 }
