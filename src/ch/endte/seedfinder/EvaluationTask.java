@@ -100,7 +100,7 @@ public class EvaluationTask extends Task {
 			
 			sb.append("\"slimechunk\":{");
 			sb.append("\"stronghold\":"+posToString(slimeChunkStronghold));
-			sb.append(",\"center\"+posToString(slimeChunkCenter)");
+			sb.append(",\"center\":"+posToString(slimeChunkCenter));
 			sb.append(",\"count\":"+slimeChunkMaxCount+"},");
 			
 			sb.append("\"spawnBiomes\":{\"center\":"+spawnCenterBiomes.toString());
