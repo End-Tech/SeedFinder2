@@ -18,12 +18,14 @@ public class BiomeComposition {
 		ArrayList<Biome> bl = new ArrayList<Biome>(composition.keySet());
 		Collections.sort(bl, new EntrySortComparator());
 		// sort output for no reason whatsoever
+		sb.append("{");
 		boolean bb = false;
 		for (Biome b: bl) {
-			if (bb) {sb.append("|");}
+			if (bb) {sb.append(",");}
 			else {bb = true;}
-			sb.append(b.getName()+":"+composition.get(b));
+			sb.append("\""+b.getName()+"\":"+composition.get(b));
 		}
+		sb.append("}");
 		return sb.toString();
 	}
 	
