@@ -2,110 +2,127 @@ package ch.endte.seedfinder;
 
 import ch.endte.seedfinder.EvaluationTask.Context;
 import ch.endte.seedfinder.EvaluationTask.Result;
+import ch.endte.seedfinder.grids.*;
 import kaptainwutax.biomeutils.Biome;
+import kaptainwutax.seedutils.mc.pos.CPos;
 
 import java.util.ArrayList;
 
 public class MesaBiomeEvaluator {
-	private final static int REQUIRED_SIZE = 4;
-	private final static int DISTANCE_BETWEEN_POINTS = 500;
-	private final static int DISTANCE_FROM_SPAWN = 50_000;
+	public final static int DISTANCE_BETWEEN_POINTS = 500; // The lower this number is, the more accurate the finder will be
+	public final static int REQUIRED_SIZE = 4; // 4 * 500 = 2000 blocks
+	public final static int DISTANCE_FROM_SPAWN = 50_000;
 
 	/**
 	 * Finds the closes/largest mesa strip to spawn.
 	 * Start and end points are put into r.
+	 * Takes around 0.8 second to compute.
 	 *
 	 * @param g Context
 	 * @param r Result
 	 */
 	public void evaluate(Context g, Result r) {
 
-		ArrayList<int[]> alreadyUsedPoints = new ArrayList<int[]>();
+		ArrayList<MesaPoint> alreadyUsedPoints = new ArrayList<MesaPoint>();
 		int gridLength = DISTANCE_FROM_SPAWN * 2 / DISTANCE_BETWEEN_POINTS;
-		boolean[][] grid = new boolean[gridLength][gridLength];
+		MesaGrid biomeGrid = new MesaGrid(gridLength, gridLength);
+		ArrayList<MesaPoint> confirmedMesas = new ArrayList<MesaPoint>(); // Just not to loop through unecessary points
 
 		// Creates a 2D array of points, distanced by 50k blocks to each other, within `distance` blocks from 0, 0.
 		// If a point is true, it is a Mesa.
-		for (int x = 0; x < gridLength; x++) {
-			for (int z = 0; z < gridLength; z++) {
-				int scale = g.oSource.biomes.getScale();
+		int scale = g.oSource.biomes.getScale();
+		biomeGrid.initiateGrid();
+
+		for (int x = 0; x < biomeGrid.getRows(); x++) {
+			for (int z = 0; z < biomeGrid.getColumns(); z++) {
+
+				MesaPoint mesaPoint;
+
+				try {
+					mesaPoint = biomeGrid.getAt(x, z);
+				} catch (NotWithinGridException e) {
+					e.printStackTrace();
+					continue;
+				}
+
 				int biomeId = g.oSource.biomes.get(
 						Math.floorDiv(x * DISTANCE_BETWEEN_POINTS - DISTANCE_FROM_SPAWN, scale),
 						0,
 						Math.floorDiv(z * DISTANCE_BETWEEN_POINTS - DISTANCE_FROM_SPAWN, scale)
 				);
 
-				grid[x][z] = (biomeId == Biome.BADLANDS.getId() || biomeId == Biome.BADLANDS_PLATEAU.getId() || biomeId == Biome.ERODED_BADLANDS.getId());
+				if (biomeId == Biome.BADLANDS.getId() || biomeId == Biome.BADLANDS_PLATEAU.getId() || biomeId == Biome.ERODED_BADLANDS.getId()) {
+					confirmedMesas.add(mesaPoint);
+					mesaPoint.setIfMesa(true);
+				}
 			}
 		}
 
 		// Checks for 2k+ long mesas
-		for (int x = 0; x < gridLength; x++) {
-			for (int z = 0; z < gridLength; z++) {
+		for (MesaPoint mesaPoint : confirmedMesas) {
 
-				if (grid[x][z] /* Is a Mesa */ && !isAlreadyUsed(x, z, alreadyUsedPoints)) {
-					int tempX = x;
-					int tempZ = z;
-					int size = 0;
+			// NOTE: We shouldn't need to check for that, as it can only create duplicates
+			// when a Mesa is 2500+ block long, which are very rare. It slows down the process.
+			// Feel free to add this check back if needed.
 
-					try {
-						while (grid[++tempX][tempZ]) {
-							size++;
-							alreadyUsedPoints.add(new int[]{tempX, tempZ});
-						}
-					} catch (ArrayIndexOutOfBoundsException e) { /* 😎 */ }
+//			if (alreadyUsedPoints.contains(mesaPoint)) continue; // To prevent duplicates
 
-					tempX = x;
+			MesaPoint tempMesaPoint = mesaPoint;
+			int size = 0;
 
-					try {
-						while (grid[--tempX][tempZ]) {
-							size++;
-							alreadyUsedPoints.add(new int[]{tempX, tempZ});
-						}
-					} catch (ArrayIndexOutOfBoundsException e) { /* reeeeee */ }
+			/*
+			We only need to check for long mesas in these directions,
+			as we will already have had checked for long mesas in previous points
 
-					if (size < REQUIRED_SIZE) size = 0;
-					else {
-						itsAGudMesa(x, z, alreadyUsedPoints, r);
-					}
+			+  +  +  +  +
+			+  +  +  +  +
+			+  +  o––––––
+			+  +  |  +  +
+			+  +  |  +  +
+			 */
 
-					try {
-						while (grid[tempX][++tempZ]) {
-							size++;
-							alreadyUsedPoints.add(new int[]{tempX, tempZ});
-						}
-					} catch (ArrayIndexOutOfBoundsException e) { /* haha error handling go brrrr */ }
-
-					tempZ = z;
-
-					try {
-						while (grid[tempX][--tempZ]) {
-							size++;
-							alreadyUsedPoints.add(new int[]{tempX, tempZ});
-						}
-					} catch (ArrayIndexOutOfBoundsException e) { /* endtech besttech */ }
-
-					if (size >= REQUIRED_SIZE)
-						itsAGudMesa(x, z, alreadyUsedPoints, r);
+			try {
+				while ((tempMesaPoint = (MesaPoint) tempMesaPoint.north()).isMesa()) {
+					size++;
+//					alreadyUsedPoints.add(tempMesaPoint);
 				}
-				;
+			} catch (NotWithinGridException e) { /* 😎 */ }
+
+			tempMesaPoint = mesaPoint;
+
+			if (size < REQUIRED_SIZE) size = 0;
+			else {
+//				alreadyUsedPoints.add(mesaPoint);
+				handleLongMesa(mesaPoint, size, r);
+				continue;
+			}
+
+			try {
+				while ((tempMesaPoint = (MesaPoint) tempMesaPoint.west()).isMesa()) {
+					size++;
+//					alreadyUsedPoints.add(tempMesaPoint);
+				}
+			} catch (NotWithinGridException e) { /* haha error handling go brrrr */ }
+
+			if (size >= REQUIRED_SIZE) {
+//				alreadyUsedPoints.add(mesaPoint);
+				handleLongMesa(mesaPoint, size, r);
 			}
 		}
 	}
 
-	private void itsAGudMesa(int x, int z, ArrayList<int[]> alreadyUsedPoints, Result r) {
-		alreadyUsedPoints.add(new int[]{x, z});
-		int xRealCoordinate = x * DISTANCE_BETWEEN_POINTS - DISTANCE_FROM_SPAWN;
-		int zRealCoordinate = z * DISTANCE_BETWEEN_POINTS - DISTANCE_FROM_SPAWN;
-		System.out.println("x" + xRealCoordinate + " z" + zRealCoordinate);
-	}
+	private void handleLongMesa(MesaPoint mesaPoint, int size, Result r) {
+		System.out.println(mesaPoint);
 
-	private boolean isAlreadyUsed(int x, int z, ArrayList<int[]> alreadyUsedPoints) {
-		for (int[] coordinates : alreadyUsedPoints) {
-			if (coordinates[0] /* x axis */ == x && coordinates[1] /* z axis */ == z)
-				return true;
-		}
+		r.longMesaLength = size * DISTANCE_BETWEEN_POINTS;
 
-		return false;
+		r.longMesaStart = new CPos(
+				mesaPoint.x >> 4,
+				mesaPoint.z >> 4
+		);
+		r.longMesaStart = new CPos(
+				(mesaPoint.x + r.longMesaLength) >> 4,
+				(mesaPoint.z + r.longMesaLength) >> 4
+		);
 	}
 }

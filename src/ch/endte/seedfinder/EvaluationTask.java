@@ -91,6 +91,7 @@ public class EvaluationTask extends Task {
 		// store the found long mesa (if any)
 		CPos longMesaStart;
 		CPos longMesaEnd;
+		int longMesaLength;
 		
 		// used to turn a result to a message 
 		public String toString() {
