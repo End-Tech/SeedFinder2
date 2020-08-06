@@ -79,8 +79,8 @@ public class Filter1Task extends Task {
 		if(pyramid00.distanceTo(strongholdPos, DistanceMetric.CHEBYSHEV) > 23)return false;
 		if(!DESERT_PYRAMID.canSpawn(pyramid00.getX(), pyramid00.getZ(), source))return false;
 		// use code similar to village generation in outposts
-		int regionDiffX = ((pyramid00.getX()+16) >> 5)+((pyramid00.getX()-10) >> 5) - 2 * (pyramid00.getX()>>5);
-		int regionDiffZ = ((pyramid00.getZ()+16) >> 5)+((pyramid00.getZ()-10) >> 5) - 2 * (pyramid00.getZ()>>5);
+		int regionDiffX = ((pyramid00.getX()+16) >> 5)+((pyramid00.getX()-16) >> 5) - 2 * (pyramid00.getX()>>5);
+		int regionDiffZ = ((pyramid00.getZ()+16) >> 5)+((pyramid00.getZ()-16) >> 5) - 2 * (pyramid00.getZ()>>5);
 		boolean hasPossibleNeighbour = false;
 		CPos newPyramid;
 		if (regionDiffX != 0) {
