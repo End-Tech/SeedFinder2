@@ -100,7 +100,8 @@ public class StructureEvaluator {
 				break;
 			}
 		}
-		for (int i = toRemove.size()-1; i>0;i--) {
+		
+		for (int i = toRemove.size()-1; i>=0;i--) {
 			int tr = toRemove.get(i);
 			r.structureList.remove(tr);
 		}
