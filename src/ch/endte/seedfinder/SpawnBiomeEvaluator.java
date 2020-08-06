@@ -1,7 +1,6 @@
 package ch.endte.seedfinder;
 
 import ch.endte.seedfinder.EvaluationTask.Context;
-import ch.endte.seedfinder.EvaluationTask.Result;
 
 public class SpawnBiomeEvaluator {
 	

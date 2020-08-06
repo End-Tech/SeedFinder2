@@ -141,7 +141,7 @@ public class Filter2Task extends Task {
 				featurePos = fsd.feature.getInRegion(g.worldSeed, nw.getX(), se.getZ(), g.rand);
 				if (featurePos != null) {
 					dPos = new CPos(featurePos.getX()*fsd.coordinateMultiplier, featurePos.getZ()*fsd.coordinateMultiplier);
-					if (stronghold.distanceTo(featurePos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
+					if (stronghold.distanceTo(dPos, DistanceMetric.CHEBYSHEV) <= fsd.searchExtension
 							&& fsd.feature.canSpawn(featurePos.getX(), featurePos.getZ(), fsd.isNether?g.nSource:g.oSource)) {
 						found.add(fsd);
 						continue;
@@ -160,23 +160,6 @@ public class Filter2Task extends Task {
 	@Override
 	public String getId() {
 		return id;
-	}
-	
-	private static class FeatureSearchData {
-		RegionStructure<?,?> feature;
-		boolean isNether;
-		int searchExtension;
-		int bitId;
-		int coordinateMultiplier;
-		
-		public FeatureSearchData(RegionStructure<?,?> f, boolean in, int se, int bid, int cm) {
-			feature = f;
-			isNether = in;
-			searchExtension = se;
-			bitId = bid;
-			coordinateMultiplier = cm;
-		}
-		
 	}
 	
 	// used to figure out if there is at least one stronghold per 
