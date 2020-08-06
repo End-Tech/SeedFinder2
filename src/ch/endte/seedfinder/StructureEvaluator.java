@@ -58,6 +58,11 @@ public class StructureEvaluator {
 			for(int i=1;i<g.stronghold.length;i++) {
 				searchForFeature(g, r, g.stronghold[i], fsd);
 			}
+			for (ExtraStructure es: r.structureList) {
+				if (es.structureName == fsd.feature.getName()) {
+					es.pos = new CPos(es.pos.getX()*fsd.coordinateMultiplier, es.pos.getZ()*fsd.coordinateMultiplier);
+				}
+			}
 		}
 		Collections.sort(r.structureList, SORTER);
 	}
@@ -86,7 +91,6 @@ public class StructureEvaluator {
 				}
 				break;
 			case ("fortress"):
-				es.pos = new CPos(es.pos.getX()*8, es.pos.getZ()*8);
 				if (r.fortressPos == null) {
 					toRemove.add(i);
 					r.fortressPos = es.pos;
